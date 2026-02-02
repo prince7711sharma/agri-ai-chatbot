@@ -51,7 +51,9 @@ model = None
 index = None
 chunks = None
 
-VECTOR_DB_PATH = "/opt/render/project/data"  # Render Disk Path
+# 🔹 Since vector DB is inside GitHub repo
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+VECTOR_DB_PATH = os.path.join(BASE_DIR, "vector_db")
 
 def load_rag_resources():
     global model, index, chunks
@@ -61,15 +63,18 @@ def load_rag_resources():
     index_path = os.path.join(VECTOR_DB_PATH, "agri_faiss.index")
     chunks_path = os.path.join(VECTOR_DB_PATH, "agri_chunks.pkl")
 
-    if not os.path.exists(index_path) or not os.path.exists(chunks_path):
-        raise FileNotFoundError("Vector DB files not found on Render disk")
+    if not os.path.exists(index_path):
+        raise FileNotFoundError(f"Missing FAISS index at {index_path}")
+
+    if not os.path.exists(chunks_path):
+        raise FileNotFoundError(f"Missing chunks file at {chunks_path}")
 
     index = faiss.read_index(index_path)
 
     with open(chunks_path, "rb") as f:
         chunks = pickle.load(f)
 
-    print("✅ Vector DB loaded from Render disk")
+    print("✅ Vector DB loaded from GitHub repo")
 
 def retrieve_context(query: str):
     query_vector = model.encode([query])
